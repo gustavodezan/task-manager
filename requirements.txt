@@ -1,0 +1,10 @@
+deta
+fastapi
+uvicorn
+python-dotenv
+passlib
+passlib[bcrypt]
+python-jose[cryptography]
+pycryptodome
+pycryptodomex
+cryptography
