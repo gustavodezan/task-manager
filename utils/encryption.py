@@ -39,7 +39,7 @@ def decrypt(data: bytes) -> str:
     # decrypt a bytes info into a string
     key = os.getenv("ENCRYPTION_KEY").encode()
     dec = Fernet(key)
-    decrypted = decrypted = dec.decrypt(data)
+    decrypted = dec.decrypt(data)
     original_data = decrypted.decode()
     return original_data
 
@@ -58,7 +58,7 @@ def encrypt_user(user: dict) -> dict:
 
 def decrypt_user(user: dict) -> dict:
     for item in user:
-        if item == "id" or item == "key" or item == "password" or item == "scopes" or item == "ativo" or user[item] == None:
+        if item == "id" or item == "key" or item == "password" or item == "scopes" or item == "active" or user[item] == None:
             continue
         if type(user[item]) == list:
             temp_list = []

@@ -2,6 +2,7 @@ deta
 fastapi
 uvicorn
 python-dotenv
+python-multipart
 passlib
 passlib[bcrypt]
 python-jose[cryptography]

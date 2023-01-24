@@ -7,6 +7,15 @@ def get_user(key: str):
     """Get user by id"""
     return decrypt_user(user_db.get(key))
 
+def get_user_raw(key:str):
+    return user_db.get(key)
+
+def get_users_raw():
+    return user_db.fetch().items
+
+def fetch_users(query: dict):
+    return user_db.fetch(query).items
+
 def create_user(user: dict):
     """Create new team"""
     return user_db.insert(user)

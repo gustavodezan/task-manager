@@ -13,7 +13,7 @@ class TokenData(BaseModel):
     scopes: list[str] = []
 
 class User(BaseModel):
-    key: str
+    key: Optional[str] = None
     name: str
     email: str
     active: Optional[bool] = True
@@ -36,8 +36,8 @@ class Tasks(BaseModel):
     due_on: str
     create_at: str
     color: str
-    responsibles: list[User.key]
-    tags: list[Tags.key]
+    responsibles: list[str]
+    tags: list[str]
 
 class Projects(BaseModel):
     key: str
@@ -45,10 +45,10 @@ class Projects(BaseModel):
     access_level: int
     color: str
     status: str
-    tasks: list[Tasks.key]
+    tasks: list[str]
 
 class Team(BaseModel):
     key: str
     name: str
     access_level: str
-    projects: list[Projects.key]
+    projects: list[str]
