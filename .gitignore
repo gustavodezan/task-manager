@@ -4,3 +4,4 @@ venv
 .venv
 diagram.drawio.png
 .deta
+**/__pycache__

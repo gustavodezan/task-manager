@@ -5,7 +5,7 @@ from app.schemas import Project, Team, User
 
 router = APIRouter()
 
-@router.get("/id/{id}", response_model=list[Project])
+@router.get("/id/{id}", response_model=Project)
 def get_all_teams(id: str, user: Project = Depends(get_current_active_user)):
     """Return all teams the user's in"""
     project = crud.Project.get(id)

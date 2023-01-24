@@ -28,7 +28,7 @@ class UserInDB(User):
 class Tag(BaseModel):
     name: str
     key: Optional[str]
-    color: Optional[str]
+    color: Optional[str] = "#000000"
 
 class Task(BaseModel):
     key: Optional[str] = None

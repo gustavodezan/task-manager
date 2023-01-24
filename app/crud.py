@@ -23,7 +23,7 @@ class User:
 
 
 # Tags
-class Tags:
+class Tag:
     def get(key: str):
         """Get tag by id"""
         return tag_db.get(key)
