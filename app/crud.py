@@ -1,62 +1,73 @@
 from app.database import user_db, team_db, project_db, task_db, tag_db
-
+import app.schemas as schemas
 from utils.encryption import encrypt, decrypt_user, decrypt_user_preview
 
 # User
-def get_user(key: str):
-    """Get user by id"""
-    return decrypt_user(user_db.get(key))
+class User:
+    def get(key: str):
+        """Get user by id"""
+        return decrypt_user(user_db.get(key))
 
-def get_user_raw(key:str):
-    return user_db.get(key)
+    def get_raw(key:str):
+        return user_db.get(key)
 
-def get_users_raw():
-    return user_db.fetch().items
+    def get_users_raw():
+        return user_db.fetch().items
 
-def fetch_users(query: dict):
-    return user_db.fetch(query).items
+    def fetch(query: dict):
+        return user_db.fetch(query).items
 
-def create_user(user: dict):
-    """Create new team"""
-    return user_db.insert(user)
+    def create(user: dict):
+        """Create new team"""
+        return user_db.insert(user)
 
 
 # Tags
-def get_tag(key: str):
-    """Get tag by id"""
-    return tag_db.get(key)
+class Tags:
+    def get(key: str):
+        """Get tag by id"""
+        return tag_db.get(key)
 
-def create_tag(tag: dict):
-    return tag_db.insert(tag)
+    def create(tag: dict):
+        return tag_db.insert(tag)
 
 
 # Tasks
-def get_task(key: str):
-    """Get tasks by id"""
-    return task_db.get(key)
+class Task:
+    def get(key: str):
+        """Get tasks by id"""
+        return task_db.get(key)
 
-def create_tasks(task: dict):
-    return task_db.insert(task)
+    def create(task: dict):
+        return task_db.insert(task)
 
 
 # Projects
-def get_projects(key: str):
-    """Get projects by id"""
-    return project_db.get(key)
+class Project:
+    def get(key: str):
+        """Get projects by id"""
+        return project_db.get(key)
 
-def create_projects(project: dict):
-    return project_db.insert(project)
+    def fetch(query: dict):
+        return project_db.fetch(query).items
+
+    def create(project: dict):
+        return project_db.insert(project)
 
 
 # Team
-def get_team(key: str):
-    """Get team by id"""
-    return team_db.get(key)
+class Team:
+    def get(self, key: str):
+        """Get team by id"""
+        return team_db.get(key)
 
-def create_team(team: dict):
-    """Create new team"""
-    return team_db.insert(team)
+    def fetch(query: str):
+        return team_db.fetch(query).items
 
-def update_team(team: dict):
-    """Update team"""
-    return team_db.put(team)
+    def create(team: dict):
+        """Create new team"""
+        return team_db.insert(team)
+
+    def update(team: dict):
+        """Update team"""
+        return team_db.put(team)

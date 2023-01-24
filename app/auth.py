@@ -11,7 +11,7 @@ from passlib.context import CryptContext
 from pydantic import ValidationError
 
 from app.schemas import TokenData, User, UserInDB
-from app.crud import get_users_raw, get_user
+import app.crud as crud
 
 from utils.encryption import decrypt
 
@@ -45,13 +45,13 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 def authenticate_user(username: str, password: str) -> UserInDB:
-    users = get_users_raw()
+    users = crud.User.get_users_raw()
     for x in users:
         if "email" not in x.keys():
             continue
         email = decrypt(x["email"])
         if email == username:
-            user = UserInDB(**get_user(x['key']))
+            user = UserInDB(**crud.User.get(x['key']))
             break
     if not user or not verify_password(password, user.password):
         return False
@@ -86,13 +86,13 @@ async def get_current_user(security_scopes: SecurityScopes, token: str = Depends
         token_data = TokenData(scopes=token_scopes, username=username)
     except (JWTError, ValidationError):
         raise credentials_exception
-    users = get_users_raw()
+    users = crud.User.get_users_raw()
     for x in users:
         if "email" not in x.keys():
             continue
         email = decrypt(x["email"])
         if email == username:
-            user = User(**get_user(x['key']))
+            user = User(**crud.User.get(x['key']))
             break
     if user is None:
         raise credentials_exception

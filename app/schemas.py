@@ -25,30 +25,34 @@ class UserInDB(User):
     scopes: Optional[list[str]] = ["me:read", "me:write"]
     access_level: Optional[int] = 0
 
-class Tags(BaseModel):
-    key: str
+class Tag(BaseModel):
     name: str
-    color: str
+    key: Optional[str]
+    color: Optional[str]
 
-class Tasks(BaseModel):
-    key: str
+class Task(BaseModel):
+    key: Optional[str] = None
     name: str
-    due_on: str
-    create_at: str
-    color: str
-    responsibles: list[str]
-    tags: list[str]
+    parent: str # project if root
+    team: str
+    create_at: Optional[str] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    due_on: Optional[str] = None
+    color: Optional[str] = "#000000"
+    responsibles: Optional[list[str]] = []
+    tags: Optional[list[str]] = []
 
-class Projects(BaseModel):
-    key: str
+class Project(BaseModel):
+    key: Optional[str] = None
     name: str
-    access_level: int
-    color: str
-    status: str
-    tasks: list[str]
+    team: str
+    access_level: Optional[int] = 0
+    color: Optional[str] = "#000000"
+    status: Optional[str] = None
+    tasks: Optional[list[str]] = None
 
 class Team(BaseModel):
-    key: str
+    key: Optional[str]
     name: str
-    access_level: str
-    projects: list[str]
+    members: Optional[list[str]] = []
+    access_level: Optional[int] = 0
+    projects: Optional[list[str]] = []
