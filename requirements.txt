@@ -3,6 +3,7 @@ fastapi
 uvicorn
 python-dotenv
 python-multipart
+bcrypt
 passlib
 passlib[bcrypt]
 python-jose[cryptography]
