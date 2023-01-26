@@ -32,10 +32,10 @@ class Tag(BaseModel):
     color: Optional[str] = "#000000"
 
 class Task(BaseModel):
-    key: Optional[str] = None
     name: str
     parent: str # project if root
     team: str
+    key: Optional[str] = None
     create_at: Optional[str] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     due_on: Optional[str] = None
     color: Optional[str] = "#000000"
@@ -49,7 +49,7 @@ class Project(BaseModel):
     access_level: Optional[int] = 0
     color: Optional[str] = "#000000"
     status: Optional[str] = None
-    tasks: Optional[list[str]] = None
+    tasks: Optional[list[str]] = []
 
 class Team(BaseModel):
     key: Optional[str]

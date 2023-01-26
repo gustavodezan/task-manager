@@ -15,7 +15,11 @@ def create_new_team(team: Team, user: User = Depends(get_current_active_user)):
     """Create a new team"""
     if user.key not in team.members:
         team.members.append(user.key)
-    return crud.Team.create(team.dict())
+    new_team = crud.Team.create(team.dict())
+    user = crud.User.get_raw(user.key)
+    user['teams'].append(new_team['key'])
+    crud.User.update(user)
+    return new_team
 
 @router.put("update", response_model=Team)
 def create_new_team(team: Team):

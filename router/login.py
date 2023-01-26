@@ -21,13 +21,13 @@ router = APIRouter()
 @router.post('/register', response_model=User)
 async def register(user: UserInDB):
     """Create user from CRM request"""
-    users = crud.get_users_raw()
+    users = crud.User.get_users_raw()
     for u in users:
         if decrypt(u["email"].encode('utf-8')) == user.email:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already taken")
     user.password = auth.get_password_hash(user.password)
     data = encrypt_user(user.dict())
-    return crud.create_user(data)
+    return crud.User.create(data)
 
 
 @router.post("/", response_model=Token)

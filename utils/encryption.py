@@ -45,7 +45,7 @@ def decrypt(data: bytes) -> str:
 
 def encrypt_user(user: dict) -> dict:
     for key, value in user.items():
-        if key == "password" or key == "key" or key == "scopes" or value == None or type(value) == bool or key == "active":
+        if key == "password" or key == "key" or key == "scopes" or value == None or type(value) == bool or key == "active" or key == "teams":
             continue
         elif type(value) == list:
             temp_list = []
@@ -58,7 +58,7 @@ def encrypt_user(user: dict) -> dict:
 
 def decrypt_user(user: dict) -> dict:
     for item in user:
-        if item == "id" or item == "key" or item == "password" or item == "scopes" or item == "active" or user[item] == None:
+        if item == "id" or item == "key" or item == "password" or item == "scopes" or item == "teams" or item == "active" or user[item] == None:
             continue
         if type(user[item]) == list:
             temp_list = []

@@ -13,6 +13,18 @@ def get_all_teams(id: str, user: Project = Depends(get_current_active_user)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not enough permissions")
     return project
 
+@router.get("/tasks/{project_id}")
+def get_project_tasks(project_id: str, user: Project = Depends(get_current_active_user)):
+    """Return all tasks under project"""
+    project = crud.Project.get(project_id)
+    project = Project(**project)
+    if project.team not in user.teams:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not enough permissions")
+    tasks = []
+    for task in project.tasks:
+        tasks.append(crud.Task.get(task))
+    return tasks
+
 @router.post("/create", response_model=Project)
 def create_new_team(project: Project, user: User = Depends(get_current_active_user)):
     """Create a new team"""

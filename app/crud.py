@@ -21,6 +21,9 @@ class User:
         """Create new team"""
         return user_db.insert(user)
 
+    def update(user: dict):
+        """Create new team"""
+        return user_db.put(user)
 
 # Tags
 class Tag:
@@ -53,6 +56,9 @@ class Project:
 
     def create(project: dict):
         return project_db.insert(project)
+    
+    def update(project: dict):
+        return project_db.put(project)
 
 
 # Team
