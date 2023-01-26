@@ -9,17 +9,20 @@ router = APIRouter()
 def get_all_teams(id: str, user: Project = Depends(get_current_active_user)):
     """Return all teams the user's in"""
     project = crud.Project.get(id)
-    team = crud.Team.get(project.team)
-    if user.key not in team.members:
+    if project.team not in user.teams:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not enough permissions")
     return project
 
 @router.post("/create", response_model=Project)
-def create_new_team(project: Project):
+def create_new_team(project: Project, user: User = Depends(get_current_active_user)):
     """Create a new team"""
+    if project.team not in user.teams:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not enough permissions")
     return crud.Project.create(project.dict())
 
 @router.put("update", response_model=Project)
-def create_new_team(project: Project):
+def create_new_team(project: Project, user: User = Depends(get_current_active_user)):
     """Update team info"""
+    if project.team not in user.teams:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not enough permissions")
     return crud.Project.update(project)

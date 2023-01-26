@@ -57,7 +57,7 @@ class Project:
 
 # Team
 class Team:
-    def get(self, key: str):
+    def get(self, key: str) -> schemas.Team:
         """Get team by id"""
         return team_db.get(key)
 

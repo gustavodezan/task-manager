@@ -19,6 +19,7 @@ class User(BaseModel):
     active: Optional[bool] = True
     profile_pic: Optional[bytes] = None
     register_date: Optional[str] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    teams: Optional[list[str]] = []
 
 class UserInDB(User):
     password: str
