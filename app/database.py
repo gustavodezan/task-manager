@@ -1,15 +1,22 @@
-from deta import Deta
-import os
-from pathlib import Path
-from dotenv import load_dotenv
+from dotenv import dotenv_values
+from pymongo import MongoClient
 
-# Project name: njudh
-env_path = Path(".") / ".env"
-load_dotenv(dotenv_path=env_path)
-deta = Deta(os.getenv("DATABASE_KEY"))
 
-user_db = deta.Base('users')
-team_db = deta.Base('teams')
-project_db = deta.Base('projects')
-task_db = deta.Base('tasks')
-tag_db = deta.Base('tags')
+config = dotenv_values(".env")
+
+class Database:
+    def __init__(self):
+        self.mongodb_client: MongoClient = MongoClient(config["CHATDB_URL"])
+        self.core = self.mongodb_client[config["CHAT_DB_NAME"]]
+        self.rooms = self.core["rooms"]
+
+    def Close(self):
+        print("Closing connection")
+        self.mongodb_client.close()
+
+db = Database()
+
+def get_db():
+    return db
+# mongodb_client: MongoClient = MongoClient(config["CHATDB_URL"])
+# database = mongodb_client[config["CHAT_DB_NAME"]]

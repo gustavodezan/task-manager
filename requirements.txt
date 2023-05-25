@@ -1,6 +1,6 @@
-deta
 fastapi
 uvicorn
+pymongo
 python-dotenv
 python-multipart
 bcrypt
