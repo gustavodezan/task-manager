@@ -68,12 +68,12 @@ class Project(BaseModel):
 class TeamCreate(BaseModel):
     name: str
     access_level: int = 0
-    members: list[User] = []
+    members: list[User]|list[str] = []
     projects: list[Project] = []
     slug: str|None = None
 
 class Team(TeamCreate):
-    admins: list[User]
+    admins: list[User]|list[str] = []
 
 class TeamInDB(Team):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")

@@ -43,7 +43,7 @@ def get_password_hash(password):
 
 def authenticate_user(username: str, password: str, user_db: crud.UserDB) -> schemas.User:
     user = user_db.get_by_email(username)
-    if not user or not verify_password(password, user["password"]):
+    if not user or not verify_password(password, user.password):
         return False
     return user
 
@@ -91,7 +91,7 @@ async def get_current_user(user_db: crud.UserDB, security_scopes: SecurityScopes
     return user
 
 async def get_current_active_user(current_user: schemas.User = Security(get_current_user, scopes=['me:read'])):
-    if not current_user["active"]:
+    if not current_user.active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
     return current_user
 

@@ -2,6 +2,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from .. import crud, schemas, auth
+from ..exceptions import not_found, already_exists
 
 
 router = APIRouter()
@@ -20,7 +21,10 @@ def get_user(user_db: crud.UserDB):
 @router.get("/{user_id}", response_model=schemas.User)
 def get_user(user_id: str, user_db: crud.UserDB):
     """Return user data"""
-    return user_db.get(user_id)
+    user = user_db.get(user_id)
+    if not user:
+        raise not_found("User")
+    return user
 
 @router.post("/new", response_model=schemas.User)
 def create_new_user(user: schemas.UserCreate, user_db: crud.UserDB):

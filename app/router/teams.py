@@ -1,29 +1,24 @@
 from fastapi import APIRouter, Depends
+from slugify import slugify
+
 from ..auth import CurrentUser
-from .. import crud
-from ..schemas import Team, User
+from .. import crud, schemas
 
 
 router = APIRouter()
 
 
-@router.get("/my-teams", response_model=list[Team])
-def get_all_teams(user: CurrentUser):
+@router.get("/all", response_model=list[schemas.Team])
+def get_all_teams(user: CurrentUser, team_db: crud.TeamDB):
     """Return all teams the user's in"""
-    return crud.Team.fetch({"members?contains": user.key})
+    return team_db.get_member_teams(user.id)
 
-# @router.post("/create", response_model=Team)
-# def create_new_team(team: Team, user: User = Depends(get_current_active_user)):
-#     """Create a new team"""
-#     if user.key not in team.members:
-#         team.members.append(user.key)
-#     new_team = crud.Team.create(team.dict())
-#     user = crud.User.get_raw(user.key)
-#     user['teams'].append(new_team['key'])
-#     crud.User.update(user)
-#     return new_team
 
-# @router.put("update", response_model=Team)
-# def create_new_team(team: Team):
-#     """Update team info"""
-#     return crud.Team.update(team)
+@router.post("/new", response_model=schemas.TeamInDB)
+def create_new_team(team: schemas.TeamCreate, user: CurrentUser, team_db: crud.TeamDB, user_db: crud.UserDB):
+    """Create a new team"""
+    slug = slugify(team.name)
+    team.slug = slug
+    team = schemas.TeamInDB(**team.dict(), admins=[user.id])
+    team = team_db.create(team)
+    return team

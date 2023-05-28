@@ -10,3 +10,4 @@ python-jose[cryptography]
 pycryptodome
 pycryptodomex
 cryptography
+python-slugify

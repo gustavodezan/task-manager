@@ -11,6 +11,7 @@ class Database:
         self.manager = self.core["manager"]
         self.user = self.core["user"]
         self.team = self.core["team"]
+        print("Connected to the MongoDB database!")
 
     def Close(self):
         print("Closing connection")

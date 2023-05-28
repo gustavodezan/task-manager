@@ -16,14 +16,19 @@ class User(Crud):
         self.db = db.user
         # self.db.drop()
 
-    def get(self, user_id: str):
-        return self.db.find_one({"_id":user_id})
+    def get(self, user_id: str) -> schemas.UserInDB:
+        user = self.db.find_one({"_id":user_id})
+        if user:
+            return schemas.UserInDB(**user)
     
-    def get_by_email(self, email: str):
-        return self.db.find_one({"email":email})
+    def get_by_email(self, email: str) -> schemas.UserInDB:
+        user = self.db.find_one({"email":email})
+        if user:
+            print("user _id:",user["_id"])
+            return schemas.UserInDB(**user)
     
-    def get_all(self):
-        return list(self.db.find())
+    def get_all(self) -> list[schemas.UserInDB]:
+        return [schemas.UserInDB(**user) for user in self.db.find()]
 
     def create(self, user: schemas.User):
         if self.get_by_email(user.email):
@@ -36,16 +41,30 @@ class Team(Crud):
     def __init__(self, db: GetDB):
         super().__init__(db)
         self.db = db.team
+        # self.db.drop()
     
     def get(self, team_id: int):
-        return self.db.find_one({"_id": team_id})
+        team = self.db.find_one({"_id": team_id})
+        if team:
+            print("team _id:",team["_id"])
+            return schemas.TeamInDB(**team)
     
     def get_by_slug(self, slug: str):
-        return self.db.find_one({"slug": slug})
+        team = self.db.find_one({"slug": slug})
+        if team:
+            return schemas.TeamInDB(**team)
+    
+    def get_member_teams(self, user_id: str):
+        teams = self.db.find({"members": user_id})
+        member_teams = []
+        for team in teams:
+            if team:
+                member_teams.append(schemas.TeamInDB(**team))
+        return member_teams
     
     def get_all(self):
-        return list(self.db.find())
-    
+        return [schemas.TeamInDB(**team) for team in self.db.find()]
+
     def create(self, team: schemas.Team):
         if self.get_by_slug(team.slug):
             raise already_exists("Team with that name")
