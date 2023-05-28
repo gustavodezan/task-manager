@@ -1,16 +1,16 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
-# from app.auth import get_current_active_user
-from .. import crud, schemas
+
+from .. import crud, schemas, auth
 
 
 router = APIRouter()
 
 
-@router.get("/", response_model=list[schemas.User])
-def get_user(user_db: crud.UserDB):
+@router.get("/", response_model=schemas.User)
+def get_user(user: auth.CurrentUser):
     """Return user data"""
-    return user_db.get_all()
+    return user
 
 @router.get("/all", response_model=list[schemas.User])
 def get_user(user_db: crud.UserDB):
@@ -24,7 +24,7 @@ def get_user(user_id: str, user_db: crud.UserDB):
 
 @router.post("/new", response_model=schemas.User)
 def create_new_user(user: schemas.UserCreate, user_db: crud.UserDB):
-    user = schemas.User(**user.dict())
+    user = schemas.UserInDB(**user.dict())
+    user.password = auth.get_password_hash(user.password)
     user = user_db.create(user)
-    print(user)
     return user

@@ -29,12 +29,13 @@ class User(UserBase):
     # teams: list["Team"] = []
     scopes: list[str] = ["me:read", "me:write"]
     access_level: int = 0
+    active: bool = True
 
     # class Config:
     #     orm_mode = True
 
-# class UserInDB(User):
-#     password: str
+class UserInDB(User,UserCreate):
+    pass
 
 
 class Tag(BaseModel):

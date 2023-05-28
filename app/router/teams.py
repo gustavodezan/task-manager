@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from ..auth import get_current_active_user
+from ..auth import CurrentUser
 from .. import crud
 from ..schemas import Team, User
 
@@ -8,7 +8,7 @@ router = APIRouter()
 
 
 @router.get("/my-teams", response_model=list[Team])
-def get_all_teams(user: User = Depends(get_current_active_user)):
+def get_all_teams(user: CurrentUser):
     """Return all teams the user's in"""
     return crud.Team.fetch({"members?contains": user.key})
 
