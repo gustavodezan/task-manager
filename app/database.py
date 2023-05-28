@@ -6,9 +6,11 @@ config = dotenv_values(".env")
 
 class Database:
     def __init__(self):
-        self.mongodb_client: MongoClient = MongoClient(config["CHATDB_URL"])
-        self.core = self.mongodb_client[config["CHAT_DB_NAME"]]
-        self.rooms = self.core["rooms"]
+        self.mongodb_client: MongoClient = MongoClient(config["TASKDB_URL"])
+        self.core = self.mongodb_client[config["TASK_DB_NAME"]]
+        self.manager = self.core["manager"]
+        self.user = self.core["user"]
+        self.team = self.core["team"]
 
     def Close(self):
         print("Closing connection")

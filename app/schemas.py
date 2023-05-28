@@ -13,6 +13,7 @@ class TokenData(BaseModel):
     username: str|None = None
     scopes: list[str]
 
+
 class UserBase(BaseModel):
     name: str
     email: str
@@ -25,41 +26,53 @@ class User(UserBase):
     active: bool = True
     profile_pic: str|None = None
     register_date: datetime = datetime.now()
-    teams: list[str]
-
-class UserInDB(User):
-    password: str
+    # teams: list["Team"] = []
     scopes: list[str] = ["me:read", "me:write"]
     access_level: int = 0
+
+    # class Config:
+    #     orm_mode = True
+
+# class UserInDB(User):
+#     password: str
+
 
 class Tag(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
     name: str
     color: str = "#000000"
 
+
 class Task(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
     name: str
     parent: str # project if root
-    create_at: datetime = datetime.now()
+    created_at: datetime = datetime.now()
     due_on: datetime|None = None
     completed_at: datetime|None = None
     color: str = "#000000"
-    responsibles: list[str]
-    tags: list[str]
+    responsibles: list[User]
+    tags: list[Tag]
 
 class Project(BaseModel):
-    key: Optional[str] = None
+    id: str = Field(default_factory=uuid.uuid4, alias="_id")
     name: str
-    team: str
-    access_level: Optional[int] = 0
-    color: Optional[str] = "#000000"
-    status: Optional[str] = None
-    tasks: Optional[list[str]] = []
+    access_level: int = 0
+    color: str = "#000000"
+    status: str|None = None
+    tasks: list[Task]
+    admins: list[User]
 
-class Team(BaseModel):
-    key: Optional[str]
+
+class TeamCreate(BaseModel):
     name: str
-    members: Optional[list[str]] = []
-    access_level: Optional[int] = 0
-    projects: Optional[list[str]] = []
+    access_level: int = 0
+    members: list[User] = []
+    projects: list[Project] = []
+    slug: str|None = None
+
+class Team(TeamCreate):
+    admins: list[User]
+
+class TeamInDB(Team):
+    id: str = Field(default_factory=uuid.uuid4, alias="_id")
