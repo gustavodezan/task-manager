@@ -11,6 +11,7 @@ from passlib.context import CryptContext
 from pydantic import ValidationError
 
 from . import crud, schemas
+from .dependencies import UserDB
 
 import os
 from pathlib import Path
@@ -41,7 +42,7 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
 
-def authenticate_user(username: str, password: str, user_db: crud.UserDB) -> schemas.User:
+def authenticate_user(username: str, password: str, user_db: UserDB) -> schemas.User:
     user = user_db.get_by_email(username)
     if not user or not verify_password(password, user.password):
         return False
@@ -57,7 +58,7 @@ def create_access_token(data: dict, expires_delta: timedelta|None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(user_db: crud.UserDB, security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
+async def get_current_user(user_db: UserDB, security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
     if security_scopes.scopes:
         authenticate_value = f'Bearer scope="{security_scopes.scope_str}"'
     else:

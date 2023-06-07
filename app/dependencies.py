@@ -1,5 +1,6 @@
 from typing import Annotated
-from .database import get_db, Database
 from fastapi import Depends
+from . import crud
 
-GetDB = Annotated[Database, Depends(get_db)]
+UserDB = Annotated[crud.User, Depends(crud.User)]
+TeamDB = Annotated[crud.Team, Depends(crud.Team)]

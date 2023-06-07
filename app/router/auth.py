@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from .. import crud, schemas
 from .. import auth
-from ..dependencies import GetDB
+from ..dependencies import UserDB
 from ..constants import ACCESS_TOKEN_EXPIRE_TIME
 
 
@@ -14,7 +14,7 @@ router = APIRouter()
 
 
 @router.post('/login', response_model=schemas.Token)
-def login(db: crud.UserDB, form_data: OAuth2PasswordRequestForm = Depends()):
+def login(db: UserDB, form_data: OAuth2PasswordRequestForm = Depends()):
     user = auth.authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect username or password")

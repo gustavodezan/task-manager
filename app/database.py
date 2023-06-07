@@ -1,6 +1,7 @@
+from typing import Annotated
 from dotenv import dotenv_values
 from pymongo import MongoClient
-
+from fastapi import Depends
 
 config = dotenv_values(".env")
 
@@ -21,5 +22,7 @@ db = Database()
 
 def get_db():
     return db
+
+GetDB = Annotated[Database, Depends(get_db)]
 # mongodb_client: MongoClient = MongoClient(config["CHATDB_URL"])
 # database = mongodb_client[config["CHAT_DB_NAME"]]

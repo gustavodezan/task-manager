@@ -1,9 +1,10 @@
-# from fastapi import APIRouter, Depends, HTTPException, status
-# from app.auth import get_current_active_user
-# from app import crud
-# from app.schemas import Project, Team, User
+from fastapi import APIRouter, Depends, HTTPException, status
+from ..auth import get_current_active_user
+from .. import crud, schemas, auth
 
-# router = APIRouter()
+
+router = APIRouter()
+
 
 # @router.get("/id/{id}", response_model=Project)
 # def get_all_teams(id: str, user: Project = Depends(get_current_active_user)):
@@ -25,13 +26,15 @@
 #         tasks.append(crud.Task.get(task))
 #     return tasks
 
-# @router.post("/create", response_model=Project)
-# def create_new_team(project: Project, user: User = Depends(get_current_active_user)):
-#     """Create a new team"""
-#     if project.team not in user.teams:
-#         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not enough permissions")
-#     return crud.Project.create(project.dict())
+@router.post("/create", response_model=schemas.Project)
+def create_new_team(project: schemas.Project, user: auth.CurrentUser):
+    """Create a new team"""
+    # if project.team not in user.teams:
+    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not enough permissions")
+    # return crud.Project.create(project.dict())
+    
 
+    return project
 # @router.put("update", response_model=Project)
 # def create_new_team(project: Project, user: User = Depends(get_current_active_user)):
 #     """Update team info"""

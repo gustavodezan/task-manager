@@ -1,5 +1,5 @@
 fastapi
-uvicorn==0.21.1
+uvicorn[standard]
 pymongo
 python-dotenv
 python-multipart

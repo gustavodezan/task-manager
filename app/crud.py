@@ -3,7 +3,7 @@ from fastapi import Depends
 from fastapi.encoders import jsonable_encoder
 
 from . import schemas
-from .dependencies import GetDB
+from .database import GetDB
 from .exceptions import not_found, already_exists
 
 class Crud:
@@ -72,6 +72,7 @@ class Team(Crud):
         new_team = self.db.insert_one(team)
         return self.get(new_team.inserted_id)
 
-UserDB = Annotated[User, Depends(User)]
-TeamDB = Annotated[Team, Depends(Team)]
+
+
+
 
