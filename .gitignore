@@ -1,0 +1,10 @@
+**/env
+**/venv
+**/.env
+**/.venv
+/backend/diagram.drawio.png
+.deta
+**/__pycache__
+**/init-mongo.js
+**/docker-compose.yml
+**/mongo-volume
