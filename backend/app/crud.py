@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import Depends
 from fastapi.encoders import jsonable_encoder
-
+import abc
 from . import schemas
 from .database import GetDB
 from .exceptions import not_found, already_exists
@@ -24,7 +24,7 @@ class User(Crud):
     def get_by_email(self, email: str) -> schemas.UserInDB:
         user = self.db.find_one({"email":email})
         if user:
-            print("user _id:",user["_id"])
+            # print("user _id:",user["_id"])
             return schemas.UserInDB(**user)
     
     def get_all(self) -> list[schemas.UserInDB]:
@@ -36,6 +36,23 @@ class User(Crud):
         user = jsonable_encoder(user)
         new_user = self.db.insert_one(user)
         return self.get(new_user.inserted_id)
+    
+    def delete(self, user_id: str):
+        if not self.get(user_id):
+            raise not_found("User")
+        self.db.delete_one({"_id":user_id})
+        return True
+
+class Workspace(Crud):
+    def __init__(self, db: GetDB):
+        super().__init__(db)
+        self.db = db.team
+
+    def get(self, workspace_id: int):
+        workspace = self.db.find_one({"_id": workspace_id})
+        if workspace:
+            print("workspace _id:",workspace["_id"])
+            return schemas.WordspaceInDB(**workspace)
 
 class Team(Crud):
     def __init__(self, db: GetDB):
@@ -46,7 +63,7 @@ class Team(Crud):
     def get(self, team_id: int):
         team = self.db.find_one({"_id": team_id})
         if team:
-            print("team _id:",team["_id"])
+            # print("team _id:",team["_id"])
             return schemas.TeamInDB(**team)
     
     def get_by_slug(self, slug: str):
@@ -71,8 +88,22 @@ class Team(Crud):
         team = jsonable_encoder(team)
         new_team = self.db.insert_one(team)
         return self.get(new_team.inserted_id)
+    
+    def update(self, team: schemas.TeamUpdate):
+        if not self.get(team.id):
+            raise not_found("Team")
+        updated_team = team.model_dump(exclude_unset=True)
+        # {key:value for key,value in zip(list(updated_team.keys()), list(updated_team.values()))}
+        updated_team.pop("id")
+        updated_team = self.db.update_one({"id":team.id}, update={"$set":updated_team})
+        if updated_team.raw_result['updatedExisting']:
+            return True
+        return False
 
-
-
+    def delete(self, team_id: str):
+        if not self.get(team_id):
+            raise not_found("Team")
+        self.db.delete_one({"_id":team_id})
+        return True
 
 

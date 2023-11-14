@@ -3,60 +3,63 @@ from typing import Optional
 import uuid
 from pydantic import BaseModel, Field
 
+class APIModel(BaseModel):
+    pass
+
+class InDB(BaseModel):
+    id: str = Field(default_factory=uuid.uuid4, alias="_id")
+
 # Tokens
-class Token(BaseModel):
+class Token(APIModel):
     access_token: str
     token_type: str
-    expire: str
+    expire: int
 
-class TokenData(BaseModel):
+class TokenData(APIModel):
     username: str|None = None
     scopes: list[str]
 
 
-class UserBase(BaseModel):
+class UserBase(APIModel):
     name: str
     email: str
 
 class UserCreate(UserBase):
-    password: str
+    password: str = Field(max_length=64, min_length=8)
 
-class User(UserBase):
-    id: str = Field(default_factory=uuid.uuid4, alias="_id")
+class User(UserBase, InDB):
     active: bool = True
     profile_pic: str|None = None
-    register_date: datetime = datetime.now()
+    register_date: datetime = Field(default_factory=datetime.now)
     # teams: list["Team"] = []
     scopes: list[str] = ["me:read", "me:write"]
     access_level: int = 0
     active: bool = True
 
-    # class Config:
-    #     orm_mode = True
-
 class UserInDB(User,UserCreate):
     pass
 
 
-class Tag(BaseModel):
+class Tag(APIModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
     name: str
     color: str = "#000000"
 
 
-class Task(BaseModel):
-    id: str = Field(default_factory=uuid.uuid4, alias="_id")
+class TaskCreate(APIModel):
     name: str
     parent: str # project if root
-    created_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
     due_on: datetime|None = None
     completed_at: datetime|None = None
     color: str = "#000000"
     responsibles: list[User]
     tags: list[Tag]
 
-class Project(BaseModel):
-    id: str = Field(default_factory=uuid.uuid4, alias="_id")
+class Task(TaskCreate, InDB):
+    pass
+
+class ProjectCreate(APIModel):
     name: str
     access_level: int = 0
     color: str = "#000000"
@@ -64,8 +67,17 @@ class Project(BaseModel):
     tasks: list[Task]
     admins: list[User]
 
+class Project(ProjectCreate, InDB):
+    pass
 
-class TeamCreate(BaseModel):
+class ProjectUpdate(APIModel):
+    name: str|None = None
+    color: str|None = None
+    status: str|None = None
+    tasks: list[Task]|None = None
+    admins: list[User]|None = None
+
+class TeamCreate(APIModel):
     name: str
     access_level: int = 0
     members: list[User]|list[str] = []
@@ -77,3 +89,27 @@ class Team(TeamCreate):
 
 class TeamInDB(Team):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
+
+class TeamUpdate(APIModel):
+    id: str
+    name: str|None = None
+    access_level: int|None = None
+    members: list[User]|list[str]|None = None
+    projects: list[Project]|None = None
+    slug: str|None = None
+
+class Workspace(APIModel):
+    name: str
+    members: list[User] = []
+    owners: list[User] = []
+    teams: list[Team] = []
+    # projects: list[Project] = []
+
+class WordspaceInDB(InDB):
+    pass
+
+class WorkspaceUpdate(APIModel):
+    name: str|None = None
+    members: list[User]|None = None
+    owners: list[User]|None = None
+    teams: list[Team]|None = None

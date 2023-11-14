@@ -1,6 +1,7 @@
 fastapi
 uvicorn[standard]
 pymongo
+pytest
 python-dotenv
 python-multipart
 bcrypt
@@ -11,3 +12,4 @@ pycryptodome
 pycryptodomex
 cryptography
 python-slugify
+httpx

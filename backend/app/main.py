@@ -42,7 +42,7 @@ def home():
     return {"message":"Hi!"}
 
 # app.include_router(login.router, prefix="/login", tags=["auth"])
-app.include_router(user.router, prefix="/user", tags=["user"])
+app.include_router(user.router, prefix="/users", tags=["user"])
 app.include_router(auth_route.router, prefix="/auth", tags=["auth"])
 app.include_router(teams.router, prefix="/teams", tags=["teams"])
 # app.include_router(projects.router, prefix="/projects", tags=["projects"], dependencies=[Depends(auth.get_current_active_user)])

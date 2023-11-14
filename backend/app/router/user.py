@@ -1,9 +1,9 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
 
-from .. import crud, schemas, auth
+from .. import schemas, auth
 from ..exceptions import not_found, already_exists
-from ..dependencies import UserDB
+from ..dependencies import GetDBs
 
 
 router = APIRouter()
@@ -14,22 +14,28 @@ def get_user(user: auth.CurrentUser):
     """Return user data"""
     return user
 
-@router.get("/all", response_model=list[schemas.User])
-def get_user(user_db: UserDB):
+@router.get("/all")#, response_model=list[schemas.User]
+def get_user(dbs: GetDBs):
     """Return user data"""
-    return user_db.get_all()
+    return dbs.user.get_all()
 
 @router.get("/{user_id}", response_model=schemas.User)
-def get_user(user_id: str, user_db: UserDB):
+def get_user(user_id: str, dbs: GetDBs):
     """Return user data"""
-    user = user_db.get(user_id)
+    user = dbs.user.get(user_id)
     if not user:
         raise not_found("User")
     return user
 
 @router.post("/new", response_model=schemas.User)
-def create_new_user(user: schemas.UserCreate, user_db: UserDB):
-    user = schemas.UserInDB(**user.dict())
+def create_new_user(user: schemas.UserCreate, dbs: GetDBs):
+    user = schemas.UserInDB(**user.model_dump())
     user.password = auth.get_password_hash(user.password)
-    user = user_db.create(user)
+    user = dbs.user.create(user)
     return user
+
+@router.delete("/{user_id}")
+def delete_user(user_id: str, user: auth.CurrentUser, dbs: GetDBs):
+    """Delete specified team"""
+    # if user.access_level < x
+    return dbs.user.delete(user_id)
