@@ -1,6 +1,6 @@
 from datetime import datetime, date
 import json
-from tests.default_client import client
+from tests.integration.default_client import client
 
 from app import schemas
 

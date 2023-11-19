@@ -4,7 +4,8 @@ from fastapi.encoders import jsonable_encoder
 import abc
 from . import schemas
 from .database import GetDB
-from .exceptions import not_found, already_exists
+from .exceptions import not_found, already_exists, invalid_format
+import uuid
 
 class Crud:
     def __init__(self, db: GetDB):
@@ -19,18 +20,18 @@ class User(Crud):
     def get(self, user_id: str) -> schemas.UserInDB:
         user = self.db.find_one({"_id":user_id})
         if user:
-            return schemas.UserInDB(**user)
+            return schemas.User(**user)
     
     def get_by_email(self, email: str) -> schemas.UserInDB:
         user = self.db.find_one({"email":email})
         if user:
             # print("user _id:",user["_id"])
-            return schemas.UserInDB(**user)
+            return schemas.User(**user)
     
     def get_all(self) -> list[schemas.UserInDB]:
         return [schemas.UserInDB(**user) for user in self.db.find()]
 
-    def create(self, user: schemas.User):
+    def create(self, user: schemas.UserInDB):
         if self.get_by_email(user.email):
             raise already_exists("User")
         user = jsonable_encoder(user)
@@ -58,8 +59,7 @@ class Team(Crud):
     def __init__(self, db: GetDB):
         super().__init__(db)
         self.db = db.team
-        # self.db.drop()
-    
+
     def get(self, team_id: int):
         team = self.db.find_one({"_id": team_id})
         if team:
@@ -82,7 +82,9 @@ class Team(Crud):
     def get_all(self):
         return [schemas.TeamInDB(**team) for team in self.db.find()]
 
-    def create(self, team: schemas.Team):
+    def create(self, team: schemas.TeamInDB):
+        if not isinstance(team, schemas.TeamInDB):
+            raise invalid_format()
         if self.get_by_slug(team.slug):
             raise already_exists("Team with that name")
         team = jsonable_encoder(team)
@@ -92,10 +94,11 @@ class Team(Crud):
     def update(self, team: schemas.TeamUpdate):
         if not self.get(team.id):
             raise not_found("Team")
-        updated_team = team.model_dump(exclude_unset=True)
-        # {key:value for key,value in zip(list(updated_team.keys()), list(updated_team.values()))}
-        updated_team.pop("id")
-        updated_team = self.db.update_one({"id":team.id}, update={"$set":updated_team})
+        new_team = team.model_dump(exclude_unset=True)
+        new_team.pop("id")
+        if new_team == {}:
+            return False
+        updated_team = self.db.update_one({"_id":team.id}, {"$set":new_team})
         if updated_team.raw_result['updatedExisting']:
             return True
         return False

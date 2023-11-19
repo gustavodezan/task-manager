@@ -1,7 +1,10 @@
+import uuid
 from datetime import datetime
 from typing import Optional
-import uuid
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel, Field, validator
+from slugify import slugify
+
 
 class APIModel(BaseModel):
     pass
@@ -32,7 +35,7 @@ class User(UserBase, InDB):
     profile_pic: str|None = None
     register_date: datetime = Field(default_factory=datetime.now)
     # teams: list["Team"] = []
-    scopes: list[str] = ["me:read", "me:write"]
+    # scopes: list[str] = ["me:read", "me:write"]
     access_level: int = 0
     active: bool = True
 
@@ -83,6 +86,12 @@ class TeamCreate(APIModel):
     members: list[User]|list[str] = []
     projects: list[Project] = []
     slug: str|None = None
+
+    @validator('slug', always=True)
+    def ab(cls, v, values) -> str:
+        if not v:
+            return slugify(values['name'])
+        return v
 
 class Team(TeamCreate):
     admins: list[User]|list[str] = []

@@ -11,3 +11,6 @@ def internal_error(entity: str = "Entity"):
 
 def not_enough_permissions():
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not enough permissions")
+
+def invalid_format():
+    raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Invalid format")

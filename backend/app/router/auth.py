@@ -18,12 +18,12 @@ def login(db: UserDB, form_data: OAuth2PasswordRequestForm = Depends()):
     user = auth.authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect username or password")
-    user_scopes = user.scopes
-    for scope in form_data.scopes:
-        if scope not in user_scopes:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="You do not have the requested permissions"
-            )
+    # user_scopes = user.scopes
+    # for scope in form_data.scopes:
+    #     if scope not in user_scopes:
+    #         raise HTTPException(
+    #             status_code=status.HTTP_400_BAD_REQUEST, detail="You do not have the requested permissions"
+    #         )
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_TIME)
     access_token = auth.create_access_token({"sub": user.email, "scopes": form_data.scopes}, access_token_expires)

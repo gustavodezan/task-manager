@@ -1,9 +1,11 @@
-from datetime import datetime, date
 import json
-from tests.default_client import client
-from tests.test_auth import get_valid_token
+from datetime import date, datetime
+
+import pytest
 
 from app import schemas
+from tests.integration.default_client import client
+from tests.integration.test_auth import get_valid_token
 
 base_url = "teams"
 global_id = ""
@@ -59,10 +61,3 @@ def test_delete():
     global global_id
     response = client.delete(f"/{base_url}/{global_id}")
     assert response.status_code == 200
-
-
-# def test_team_crud():
-#     """This function is necessary in order to excute tests in the right order"""
-#     create()
-#     "..."
-#     delete()
