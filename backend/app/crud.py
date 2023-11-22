@@ -17,27 +17,48 @@ class User(Crud):
         self.db = db.user
         # self.db.drop()
 
-    def get(self, user_id: str) -> schemas.UserInDB:
+    def get(self, user_id: str) -> schemas.User:
         user = self.db.find_one({"_id":user_id})
         if user:
             return schemas.User(**user)
     
-    def get_by_email(self, email: str) -> schemas.UserInDB:
+    def get_by_email(self, email: str) -> schemas.User:
         user = self.db.find_one({"email":email})
         if user:
             # print("user _id:",user["_id"])
             return schemas.User(**user)
     
-    def get_all(self) -> list[schemas.UserInDB]:
-        return [schemas.UserInDB(**user) for user in self.db.find()]
+    def get_all(self) -> list[schemas.User]:
+        return [schemas.User(**user) for user in self.db.find()]
+
+    def get_for_auth(self, email: str) -> schemas.UserInDB:
+        user = self.db.find_one({"email":email})
+        if user:
+            return schemas.UserInDB(**user)
 
     def create(self, user: schemas.UserInDB):
+        if not isinstance(user, schemas.UserInDB):
+            raise invalid_format()
         if self.get_by_email(user.email):
             raise already_exists("User")
         user = jsonable_encoder(user)
         new_user = self.db.insert_one(user)
         return self.get(new_user.inserted_id)
     
+    def update(self, user: schemas.UserUpdate):
+        if not isinstance(user, schemas.UserUpdate):
+            raise invalid_format()
+        if not self.get(user.id):
+            raise not_found("Team")
+        new_user = user.model_dump(exclude_unset=True)
+        new_user.pop("id")
+        if new_user == {}:
+            return False
+        updated_user = self.db.update_one({"_id":user.id}, {"$set":new_user})
+        if updated_user.raw_result['updatedExisting']:
+            return True
+        return False
+
     def delete(self, user_id: str):
         if not self.get(user_id):
             raise not_found("User")
@@ -47,13 +68,16 @@ class User(Crud):
 class Workspace(Crud):
     def __init__(self, db: GetDB):
         super().__init__(db)
-        self.db = db.team
+        self.db = db.workspace
 
-    def get(self, workspace_id: int):
-        workspace = self.db.find_one({"_id": workspace_id})
-        if workspace:
-            print("workspace _id:",workspace["_id"])
-            return schemas.WordspaceInDB(**workspace)
+    # def get(self, workspace_id: int):
+    #     workspace = self.db.find_one({"_id": workspace_id})
+    #     if workspace:
+    #         print("workspace _id:",workspace["_id"])
+    #         return schemas.WordspaceInDB(**workspace)
+
+    # def get_all(self):
+    #     return [schemas.WorkspaceInDB(**workspace) for workspace in self.db.find()]
 
 class Team(Crud):
     def __init__(self, db: GetDB):

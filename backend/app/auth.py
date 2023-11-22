@@ -12,7 +12,7 @@ from pydantic import ValidationError
 
 from . import crud, schemas
 from .dependencies import UserDB
-from .constants import AUTH_ON, IS_PROD
+from .constants import AUTH_ON, IS_PROD, SECRET_KEY
 
 import os
 from pathlib import Path
@@ -21,9 +21,7 @@ from dotenv import load_dotenv
 env_path = Path(".") / ".env"
 load_dotenv(dotenv_path=env_path)
 
-SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -44,7 +42,7 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 def authenticate_user(username: str, password: str, user_db: UserDB) -> schemas.User:
-    user = user_db.get_by_email(username)
+    user = user_db.get_for_auth(username)
     if not user or not verify_password(password, user.password):
         return False
     return user

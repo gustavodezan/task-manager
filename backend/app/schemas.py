@@ -7,10 +7,14 @@ from slugify import slugify
 
 
 class APIModel(BaseModel):
+    last_modified: datetime|None = None
     pass
 
 class InDB(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
+
+class Update(APIModel):
+    last_modified: datetime = Field(default_factory=datetime.now)
 
 # Tokens
 class Token(APIModel):
@@ -37,11 +41,16 @@ class User(UserBase, InDB):
     # teams: list["Team"] = []
     # scopes: list[str] = ["me:read", "me:write"]
     access_level: int = 0
-    active: bool = True
 
 class UserInDB(User,UserCreate):
     pass
 
+class UserUpdate(Update):
+    id: str
+    name: str|None = None
+    active: str|None = None
+    profile_pic: str|None = None
+    access_level: int|None = None
 
 class Tag(APIModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
@@ -73,7 +82,7 @@ class ProjectCreate(APIModel):
 class Project(ProjectCreate, InDB):
     pass
 
-class ProjectUpdate(APIModel):
+class ProjectUpdate(Update):
     name: str|None = None
     color: str|None = None
     status: str|None = None
@@ -99,7 +108,7 @@ class Team(TeamCreate):
 class TeamInDB(Team):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
 
-class TeamUpdate(APIModel):
+class TeamUpdate(Update):
     id: str
     name: str|None = None
     access_level: int|None = None
@@ -114,10 +123,10 @@ class Workspace(APIModel):
     teams: list[Team] = []
     # projects: list[Project] = []
 
-class WordspaceInDB(InDB):
+class WorkspaceInDB(InDB):
     pass
 
-class WorkspaceUpdate(APIModel):
+class WorkspaceUpdate(Update):
     name: str|None = None
     members: list[User]|None = None
     owners: list[User]|None = None

@@ -5,6 +5,9 @@ from app import schemas, auth
 from tests.unit.default_db import close_db, dbs
 
 
+USER_TEST_EMAIL = 'test.user.crud@test.com'
+global_id = ''
+
 # GET
 def test_get_all():
     users = dbs.user.get_all()
@@ -29,3 +32,78 @@ def test_get_by_email():
         assert 'password' not in user.__dict__.keys()
     else:
         assert users == []
+
+def test_get_for_auth():
+    users = dbs.user.get_all()
+    if len(users) > 0:
+        user = dbs.user.get_for_auth(users[0].email)
+        assert isinstance(user, schemas.UserInDB)
+        assert 'password' in user.__dict__.keys()
+    else:
+        assert users == []
+
+# POST
+def test_delete_for_tests():
+    user = dbs.user.get_by_email(USER_TEST_EMAIL)
+    if user and dbs.user.delete(user.id):
+        assert True
+    else:
+        assert user == None
+
+def test_create():
+    global global_id
+
+    data = schemas.UserInDB(name="TESTE", email=USER_TEST_EMAIL, password="123456789")
+    user = dbs.user.create(data)
+    assert isinstance(user, schemas.User)
+    assert user.email == USER_TEST_EMAIL
+    assert 'password' not in user.__dict__.keys()
+    global_id = user.id
+
+def test_create_existing_email():
+    data = schemas.UserInDB(name="TESTE", email=USER_TEST_EMAIL, password="123456789")
+    with pytest.raises(HTTPException) as excinfo:
+        dbs.user.create(data)
+    assert excinfo.errisinstance(HTTPException)
+
+def test_create_w_wrong_schema():
+    data = schemas.UserCreate(name="TESTE", email="any@any.com", password="123456789")
+    with pytest.raises(HTTPException) as excinfo:
+        dbs.user.create(data)
+    assert excinfo.errisinstance(HTTPException)
+
+# PUT
+def test_update():
+    global global_id
+
+    data = schemas.UserUpdate(id=global_id, name="NOVO_TESTE")
+    assert dbs.user.update(data)
+    user = dbs.user.get(global_id)
+    assert user.name == data.name
+    assert user.email == USER_TEST_EMAIL
+
+def test_not_update():
+    global global_id
+
+    data = schemas.UserUpdate(id=global_id)
+    assert not dbs.user.update(data)
+    user = dbs.user.get(global_id)
+    assert user.name == 'NOVO_TESTE'
+
+def test_update_w_wrong_schema():
+    global global_id
+    data = schemas.TeamUpdate(id=global_id, name="NEW_TEAM")
+    with pytest.raises(HTTPException) as excinfo:
+        dbs.user.update(global_id)
+    assert excinfo.errisinstance(HTTPException)
+
+# DELETE
+def teste_delete():
+    global global_id
+    assert dbs.user.delete(global_id)
+
+def test_delete_inexistent():
+    global global_id
+    with pytest.raises(HTTPException) as excinfo:
+        dbs.user.delete(global_id)
+    assert excinfo.errisinstance(HTTPException)

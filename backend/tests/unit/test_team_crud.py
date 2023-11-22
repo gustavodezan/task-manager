@@ -78,10 +78,12 @@ def test_create():
 def test_create_wo_name():
     with pytest.raises(HTTPException) as excinfo:
         team = dbs.team.create({})
+    assert excinfo.errisinstance(HTTPException)
     
     with pytest.raises(HTTPException) as excinfo:
         team = schemas.Team(name="name")
         team = dbs.team.create(team)
+    assert excinfo.errisinstance(HTTPException)
     
     
     
@@ -120,6 +122,7 @@ def test_delete_inexistent():
     global global_id
     with pytest.raises(HTTPException) as excinfo:
         dbs.team.delete(global_id)
+    assert excinfo.errisinstance(HTTPException)
 
 # def test_close_db():
 #     close_db()

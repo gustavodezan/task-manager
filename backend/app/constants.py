@@ -14,5 +14,6 @@ from pymongo import MongoClient
 config = dotenv_values(".env")
 
 ACCESS_TOKEN_EXPIRE_TIME = int(config["ACCESS_TOKEN_EXPIRE_MINUTES"])
+SECRET_KEY = config['SECRET_KEY']
 IS_PROD = config["IS_PROD"] == "True"
 AUTH_ON = config["AUTH_ON"] == "True"
