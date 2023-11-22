@@ -2,8 +2,7 @@ from fastapi import HTTPException
 import pytest
 
 from app import schemas, auth
-from tests.unit.default_db import close_db, dbs
-
+from tests.unit.default_db import dbs
 
 USER_TEST_EMAIL = 'test.user.crud@test.com'
 global_id = ''
@@ -53,7 +52,7 @@ def test_delete_for_tests():
 def test_create():
     global global_id
 
-    data = schemas.UserInDB(name="TESTE", email=USER_TEST_EMAIL, password="123456789")
+    data = schemas.UserSubmit(name="TESTE", email=USER_TEST_EMAIL, password="123456789")
     user = dbs.user.create(data)
     assert isinstance(user, schemas.User)
     assert user.email == USER_TEST_EMAIL
@@ -61,7 +60,7 @@ def test_create():
     global_id = user.id
 
 def test_create_existing_email():
-    data = schemas.UserInDB(name="TESTE", email=USER_TEST_EMAIL, password="123456789")
+    data = schemas.UserSubmit(name="TESTE", email=USER_TEST_EMAIL, password="123456789")
     with pytest.raises(HTTPException) as excinfo:
         dbs.user.create(data)
     assert excinfo.errisinstance(HTTPException)
@@ -86,7 +85,7 @@ def test_not_update():
     global global_id
 
     data = schemas.UserUpdate(id=global_id)
-    assert not dbs.user.update(data)
+    assert isinstance(dbs.user.update(data), schemas.UserInDB)
     user = dbs.user.get(global_id)
     assert user.name == 'NOVO_TESTE'
 
@@ -94,7 +93,7 @@ def test_update_w_wrong_schema():
     global global_id
     data = schemas.TeamUpdate(id=global_id, name="NEW_TEAM")
     with pytest.raises(HTTPException) as excinfo:
-        dbs.user.update(global_id)
+        user = dbs.user.update(data)
     assert excinfo.errisinstance(HTTPException)
 
 # DELETE

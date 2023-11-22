@@ -1,6 +1,11 @@
 fastapi
 uvicorn[standard]
-pymongo
+
+sqlalchemy
+SQLAlchemy-Utils
+alembic
+pydantic[email]
+psycopg2-binary
 pytest
 python-dotenv
 python-multipart

@@ -1,75 +1,81 @@
+import abc
+import uuid
 from typing import Annotated
+
 from fastapi import Depends
 from fastapi.encoders import jsonable_encoder
-import abc
-from . import schemas
+from sqlalchemy.orm import Session
+
+from . import schemas, models
 from .database import GetDB
-from .exceptions import not_found, already_exists, invalid_format
-import uuid
+from .exceptions import already_exists, invalid_format, not_found
+
 
 class Crud:
     def __init__(self, db: GetDB):
-        self.db = db
+        self.db: Session = db
 
 class User(Crud):
-    def __init__(self, db: GetDB):
-        super().__init__(db)
-        self.db = db.user
-        # self.db.drop()
-
-    def get(self, user_id: str) -> schemas.User:
-        user = self.db.find_one({"_id":user_id})
+    def get(self, user_id: str) -> schemas.UserInDB:
+        user = self.db.query(models.User).filter(models.User.id == user_id).first()
         if user:
-            return schemas.User(**user)
+            return schemas.UserInDB(**user.__dict__)
     
-    def get_by_email(self, email: str) -> schemas.User:
-        user = self.db.find_one({"email":email})
+    def get_by_email(self, email: str) -> schemas.UserInDB:
+        user = self.db.query(models.User).filter(models.User.email == email).first()
         if user:
             # print("user _id:",user["_id"])
-            return schemas.User(**user)
+            return schemas.UserInDB(**user.__dict__)
     
-    def get_all(self) -> list[schemas.User]:
-        return [schemas.User(**user) for user in self.db.find()]
+    def get_all(self) -> list[schemas.UserInDB]:
+        query = self.db.query(models.User)
+        return [schemas.UserInDB(**user.__dict__) for user in query.all()]
 
-    def get_for_auth(self, email: str) -> schemas.UserInDB:
-        user = self.db.find_one({"email":email})
+    def get_for_auth(self, email: str) -> schemas.UserWPass:
+        user = self.db.query(models.User).filter(models.User.email == email).first()
         if user:
-            return schemas.UserInDB(**user)
+            return schemas.UserWPass(**user.__dict__)
 
-    def create(self, user: schemas.UserInDB):
-        if not isinstance(user, schemas.UserInDB):
+    def create(self, user: schemas.UserSubmit):
+        if not isinstance(user, schemas.UserSubmit):
             raise invalid_format()
         if self.get_by_email(user.email):
             raise already_exists("User")
-        user = jsonable_encoder(user)
-        new_user = self.db.insert_one(user)
-        return self.get(new_user.inserted_id)
+        # user = jsonable_encoder(user)
+        new_value = models.User(**user.model_dump())
+        self.db.add(new_value)
+        self.db.commit()
+        self.db.refresh(new_value)
+        return schemas.UserInDB(**new_value.__dict__)
     
     def update(self, user: schemas.UserUpdate):
         if not isinstance(user, schemas.UserUpdate):
             raise invalid_format()
-        if not self.get(user.id):
-            raise not_found("Team")
-        new_user = user.model_dump(exclude_unset=True)
-        new_user.pop("id")
-        if new_user == {}:
-            return False
-        updated_user = self.db.update_one({"_id":user.id}, {"$set":new_user})
-        if updated_user.raw_result['updatedExisting']:
-            return True
-        return False
+        new_value = user.model_dump(exclude_unset=True)
+        query = self.db.query(models.User).filter(models.User.id == user.id)
+        old_value = query.first()
+
+        if not old_value:
+            raise not_found("User")
+        
+        query.filter(models.User.id == user.id).update(new_value, synchronize_session=False)
+        self.db.commit()
+        self.db.refresh(old_value)
+        return schemas.UserInDB(**old_value.__dict__)
 
     def delete(self, user_id: str):
-        if not self.get(user_id):
+        query = self.db.query(models.User).filter(models.User.id == user_id)
+        value = query.first()
+
+        if not value:
             raise not_found("User")
-        self.db.delete_one({"_id":user_id})
+        
+        query.delete(synchronize_session="evaluate")
+        self.db.commit()
         return True
 
 class Workspace(Crud):
-    def __init__(self, db: GetDB):
-        super().__init__(db)
-        self.db = db.workspace
-
+    pass
     # def get(self, workspace_id: int):
     #     workspace = self.db.find_one({"_id": workspace_id})
     #     if workspace:
@@ -80,10 +86,6 @@ class Workspace(Crud):
     #     return [schemas.WorkspaceInDB(**workspace) for workspace in self.db.find()]
 
 class Team(Crud):
-    def __init__(self, db: GetDB):
-        super().__init__(db)
-        self.db = db.team
-
     def get(self, team_id: int):
         team = self.db.find_one({"_id": team_id})
         if team:

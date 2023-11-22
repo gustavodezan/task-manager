@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  # tasks_api:
+  #     build: .
+  #     ports:
+  #       - "8000:8000"
+  #     command: uvicorn --host 0.0.0.0 --port 8000 app.main:app
+  #     volumes:
+  #       - .:/code
+  #     depends_on:
+  #       - chat_db
+        
+  #     environment:
+  #       DATABASE_URL: "postgresql://postgres:senha@container/db_name"
+
+  tasks_db:
+    image: 'mongo'
+    container_name: 'tasks-db-container'
+    environment:
+      - MONGO_INITDB_DATABASE=taskmanager
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=senha
+    volumes:
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./mongo-volume:/data/db
+    ports:
+      - '27017-27019:27017-27019'

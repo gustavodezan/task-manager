@@ -28,15 +28,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# @app.on_event("startup")
-# def startup_db_client():
-#     print("Connected to the MongoDB database!2")
-
-@app.on_event("shutdown")
-def shutdown_db_client():
-    get_db().mongodb_client.close()
-
-
 @app.get('/')
 def home():
     return {"message":"Hi!"}

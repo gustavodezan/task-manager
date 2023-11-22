@@ -1,28 +1,22 @@
 from typing import Annotated
-from dotenv import dotenv_values
-from pymongo import MongoClient
+
 from fastapi import Depends
+from sqlalchemy import MetaData, create_engine
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
-config = dotenv_values(".env")
+from .constants import DATABASE_URL
 
-class Database:
-    def __init__(self):
-        self.mongodb_client: MongoClient = MongoClient(config["TASKDB_URL"])
-        self.core = self.mongodb_client[config["TASK_DB_NAME"]]
-        self.manager = self.core["manager"]
-        self.user = self.core["user"]
-        self.team = self.core["team"]
-        print("Connected to the MongoDB database!")
+print(DATABASE_URL)
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-    def Close(self):
-        print("Closing connection")
-        self.mongodb_client.close()
-
-db = Database()
+Base = declarative_base()
 
 def get_db():
-    return db
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-GetDB = Annotated[Database, Depends(get_db)]
-# mongodb_client: MongoClient = MongoClient(config["CHATDB_URL"])
-# database = mongodb_client[config["CHAT_DB_NAME"]]
+GetDB: Session = Annotated[Session, Depends(get_db)]

@@ -5,7 +5,7 @@ from .database import GetDB
 
 UserDB = Annotated[crud.User, Depends(crud.User)]
 TeamDB = Annotated[crud.Team, Depends(crud.Team)]
-WorkspaceDB = Annotated[crud.Workspace, Depends(crud.Workspace)]
+# WorkspaceDB = Annotated[crud.Workspace, Depends(crud.Workspace)]
 
 class DBs:
     def __init__(self, db: GetDB):
