@@ -28,7 +28,7 @@ class Crud:
 
     def create(self, new_obj):
         """It's needed to specialize this method in order to apply db insertion validators"""
-        if not isinstance(new_obj, self.update_schemas):
+        if not isinstance(new_obj, self.create_schemas):
             raise invalid_format()
         new_value = self.model(**new_obj.model_dump())
         self.db.add(new_value)
@@ -53,6 +53,7 @@ class Crud:
         return old_value
     
     def delete(self, obj_id: int) -> bool:
+        """In cases it's needed to manully change/delete values after the delete operation, it should come after the return of that method"""
         query = self.db.query(self.model).filter(self.model.id == obj_id)
         value = query.first()
 
@@ -90,16 +91,9 @@ class User(Crud):
             return schemas.UserWPass(**user.__dict__)
 
     def create(self, user: schemas.UserSubmit) -> schemas.UserInDB:
-        if not isinstance(user, schemas.UserSubmit):
-            raise invalid_format()
         if self.get_by_email(user.email):
             raise already_exists("User")
-        # user = jsonable_encoder(user)
-        new_value = models.User(**user.model_dump())
-        self.db.add(new_value)
-        self.db.commit()
-        self.db.refresh(new_value)
-        return schemas.UserInDB(**new_value.__dict__)
+        return super().create(user)
     
     def update(self, user: schemas.UserSubmit) -> schemas.UserInDB:
         return super().update(user)
@@ -128,13 +122,7 @@ class Workspace(Crud):
         return super().get_all()
 
     def create(self, workspace: schemas.Workspace) -> schemas.WorkspaceInDB:
-        if not isinstance(workspace, schemas.Workspace):
-            raise invalid_format()
-        new_value = models.Workspace(**workspace.model_dump())
-        self.db.add(new_value)
-        self.db.commit()
-        self.db.refresh(new_value)
-        return new_value
+        return super().create(workspace)
     
     def update(self, workspace: schemas.WorkspaceUpdate):
         return super().update(workspace)
@@ -180,17 +168,9 @@ class Team(Crud):
                 
 
     def create(self, team: schemas.TeamCreate):
-        # TODO: add admins
-        if not isinstance(team, schemas.TeamCreate):
-            raise invalid_format()
         if self.get_by_slug(team.slug):
             raise already_exists("Team with that name")
-        
-        new_value = models.Team(**team.model_dump())
-        self.db.add(new_value)
-        self.db.commit()
-        self.db.refresh(new_value)
-        return new_value
+        return super().create(team)
 
     def update(self, team: schemas.TeamUpdate) -> schemas.TeamInDB:
         return super().update(team)

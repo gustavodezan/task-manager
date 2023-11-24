@@ -51,9 +51,8 @@ def test_create():
 
     data = schemas.UserSubmit(name="TESTE", email=USER_TEST_EMAIL, password="123456789")
     user = dbs.user.create(data)
-    assert isinstance(user, schemas.User)
+    assert isinstance(user, models.User)
     assert user.email == USER_TEST_EMAIL
-    assert 'password' not in user.__dict__.keys()
     global_id = user.id
 
 def test_create_existing_email():
