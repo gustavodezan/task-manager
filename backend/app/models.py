@@ -11,6 +11,30 @@ from .constants import DB_ENCRYPTION_KEY
 from .database import Base, engine
 
 
+member_team_association = Table(
+    'member_team', Base.metadata,
+    Column('member_id', Integer, ForeignKey('users.id')),
+    Column('team_id', Integer, ForeignKey('teams.id'))
+)
+
+member_workspace_association = Table(
+    'member_workspace', Base.metadata,
+    Column('member_id', Integer, ForeignKey('users.id')),
+    Column('workspace_id', Integer, ForeignKey('workspaces.id'))    
+)
+
+member_project_association = Table(
+    'member_project', Base.metadata,
+    Column('member_id', Integer, ForeignKey('users.id')),
+    Column('project_id', Integer, ForeignKey('projects.id'))    
+)
+
+member_tasks_association = Table(
+    'member_task', Base.metadata,
+    Column('member_id', Integer, ForeignKey('users.id')),
+    Column('task_id', Integer, ForeignKey('tasks.id'))    
+)
+
 class User(Base):
     __tablename__ = 'users'
 
@@ -24,6 +48,14 @@ class User(Base):
     created_at: Mapped[datetime]
     last_modified: Mapped[datetime|None]
 
+    tasks_created: Mapped[list['Task']] = relationship(back_populates='created_by')
+
+    workspaces: Mapped[list['Workspace']] = relationship('Workspace', secondary=member_workspace_association, back_populates='members')
+    teams: Mapped[list['Team']] = relationship('Team', secondary=member_team_association, back_populates='members')
+    projects: Mapped[list['Project']] = relationship('Project', secondary=member_project_association, back_populates='members')
+    tasks: Mapped[list['Task']] = relationship('Task', secondary=member_tasks_association, back_populates='members')
+
+
 class Workspace(Base):
     __tablename__ = 'workspaces'
 
@@ -33,6 +65,7 @@ class Workspace(Base):
     last_modified: Mapped[datetime|None]
 
     teams: Mapped[list['Team']] = relationship(back_populates='workspace')
+    members: Mapped[list['User']] = relationship('User', secondary=member_workspace_association, back_populates='workspaces')
 
 class Team(Base):
     __tablename__ = 'teams'
@@ -49,6 +82,8 @@ class Team(Base):
 
     projects: Mapped[list['Project']] = relationship(back_populates='team')
 
+    members: Mapped[list['User']] = relationship('User', secondary=member_team_association, back_populates='teams')
+
 class Project(Base):
     __tablename__ = 'projects'
 
@@ -64,13 +99,7 @@ class Project(Base):
 
     tasks: Mapped['Task'] = relationship(back_populates='project')
 
-subtasks = Table(
-    'subtasks', Base.metadata,
-    Column('child_id', Integer, ForeignKey('users.id'), 
-                                        primary_key=True),
-    Column('parent_id', Integer, ForeignKey('users.id'), 
-                                        primary_key=True)
-)
+    members: Mapped[list['User']] = relationship('User', secondary=member_project_association, back_populates='projects')
 
 class Task(Base):
     __tablename__ = 'tasks'
@@ -88,10 +117,13 @@ class Task(Base):
     project_id: Mapped[int] = mapped_column(ForeignKey('projects.id', ondelete='CASCADE'))
     project: Mapped[Project] = relationship(Project, back_populates='tasks')
 
-    subtasks: Mapped[list['Task']] = relationship('Task', secondary=subtasks,
-                           primaryjoin=id==subtasks.c.parent_id,
-                           secondaryjoin=id==subtasks.c.child_id,
-                           )
+    members: Mapped[list['User']] = relationship('User', secondary=member_tasks_association, back_populates='tasks')
+
+    created_by_id: Mapped[int|None] = mapped_column(ForeignKey('users.id', ondelete='SET NULL'))
+    created_by: Mapped[Optional['User']] = relationship(back_populates='tasks_created', foreign_keys=[created_by_id])
+
+    parent_id: Mapped[int|None] = mapped_column(ForeignKey('tasks.id'))
+    parent = relationship('Task', remote_side=[id], backref='subtasks')
 
 class Comment(Base):
     __tablename__ = 'comments'

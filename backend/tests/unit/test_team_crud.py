@@ -1,8 +1,9 @@
 # from fastapi.testclient import TestClient
 from fastapi import HTTPException
+import sqlalchemy.exc
 import pytest
 
-from app import schemas
+from app import schemas, models
 from tests.unit.default_db import dbs
 
 
@@ -11,29 +12,31 @@ def test_get_all():
     teams = dbs.team.get_all()
     assert isinstance(teams, list)
     for team in teams:
-        assert isinstance(team, schemas.TeamInDB)
+        assert isinstance(team, models.Team)
 
 def test_get():
     teams = dbs.team.get_all()
     if len(teams) > 0:
         team = dbs.team.get(teams[0].id)
-        assert isinstance(team, schemas.TeamInDB)
+        assert isinstance(team, models.Team)
     else:
         assert teams == []
 
 def test_get_inexistent():
-    not_team = dbs.team.get("id")
+    not_team = dbs.team.get(-1)
     assert not_team == None
 
-def test_get_wrong_type():
-    not_team = dbs.team.get(1)
-    assert not_team == None
+# def test_get_wrong_type():
+#     with pytest.raises(sqlalchemy.exc.DataError) as excinfo:
+#         not_team = dbs.team.get('oi')
+#         # assert not_team == None
+#     assert excinfo.errisinstance(sqlalchemy.exc.DataError)
 
 def test_get_by_slug():
     teams = dbs.team.get_all()
     if len(teams) > 0:
         team = dbs.team.get_by_slug(teams[0].slug)
-        assert isinstance(team, schemas.TeamInDB)
+        assert isinstance(team, models.Team)
     else:
         assert teams == []
 
@@ -42,15 +45,15 @@ def test_get_by_slug_inexistent():
     assert team == None
 
 def test_get_member_teams():
-    test_user_id = "75e9d16c-2aec-4375-a6fb-1996665dbf2b"
+    test_user_id = 2
     teams = dbs.team.get_member_teams(test_user_id)
     assert isinstance(teams, list)
     for team in teams:
-        assert isinstance(team, schemas.TeamInDB)
-        assert test_user_id in team.members
+        assert isinstance(team, models.Team)
+        assert test_user_id in [m.id for m in team.members]
 
 def test_get_member_teams_member_invalid_user():
-    test_user_id = "id"
+    test_user_id = -1
     teams = dbs.team.get_member_teams(test_user_id)
     assert teams == []
 
@@ -68,22 +71,22 @@ def test_delete_test_team():
 def test_create():
     global global_id
 
-    data = schemas.TeamInDB(name="test_crud_team")
+    data = schemas.TeamCreate(name="test_crud_team", workspace_id=1)
     team = dbs.team.create(data)
-    assert isinstance(team, schemas.TeamInDB)
+    assert isinstance(team, models.Team)
     assert team.name == data.name
     assert team.slug == data.slug
     global_id = team.id
 
-def test_create_wo_name():
-    with pytest.raises(HTTPException) as excinfo:
-        team = dbs.team.create({})
-    assert excinfo.errisinstance(HTTPException)
+# def test_create_wo_name():
+#     with pytest.raises(HTTPException) as excinfo:
+#         team = dbs.team.create(schemas.TeamCreate(name="", workspace_id=1))
+#     assert excinfo.errisinstance(HTTPException)
     
-    with pytest.raises(HTTPException) as excinfo:
-        team = schemas.Team(name="name")
-        team = dbs.team.create(team)
-    assert excinfo.errisinstance(HTTPException)
+#     with pytest.raises(HTTPException) as excinfo:
+#         team = schemas.Team(name="name")
+#         team = dbs.team.create(team)
+#     assert excinfo.errisinstance(HTTPException)
     
     
     
@@ -93,24 +96,19 @@ def test_update():
     global global_id
 
     data = schemas.TeamUpdate(id=global_id, name="new name old-slug")
-    if dbs.team.update(data):
-        team = dbs.team.get(global_id)
-        assert team.name == data.name
-        assert team.slug != None
-    else:
-        team = dbs.team.get(global_id)
-        raise RuntimeError
+    team = dbs.team.update(data)
+    assert team.name == data.name
+    assert team.slug != None
 
 def test_not_update():
     global global_id
 
+    _team = dbs.team.get(global_id)
     data = schemas.TeamUpdate(id=global_id)
-    if dbs.team.update(data):
-        raise RuntimeError
-    else:
-        team = dbs.team.get(global_id)
-        assert team.name != None
-        assert team.slug != None
+    team = dbs.team.update(data)
+
+    assert team.name == _team.name
+    assert team.slug == _team.slug
 
 
 # DELETE

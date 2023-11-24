@@ -9,17 +9,18 @@ from ..dependencies import GetDBs
 router = APIRouter()
 
 
-@router.get("/", response_model=schemas.User)
+@router.get("/", response_model=schemas.UserResponse)
 def get_user(user: auth.CurrentUser):
     """Return user data"""
     return user
 
-@router.get("/all")#, response_model=list[schemas.User]
+@router.get("/all", response_model=list[schemas.UserResponse])
 def get_user(dbs: GetDBs):
     """Return user data"""
+    print(dbs.user.get_all())
     return dbs.user.get_all()
 
-@router.get("/{user_id}", response_model=schemas.User)
+@router.get("/{user_id}", response_model=schemas.UserResponse)
 def get_user(user_id: str, dbs: GetDBs):
     """Return user data"""
     user = dbs.user.get(user_id)
@@ -27,7 +28,7 @@ def get_user(user_id: str, dbs: GetDBs):
         raise not_found("User")
     return user
 
-@router.post("/new", response_model=schemas.User)
+@router.post("/new", response_model=schemas.UserResponse)
 def create_new_user(user: schemas.UserCreate, dbs: GetDBs):
     user = schemas.UserInDB(**user.model_dump())
     user.password = auth.get_password_hash(user.password)

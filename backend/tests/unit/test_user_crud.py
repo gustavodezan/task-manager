@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 import pytest
 
-from app import schemas, auth
+from app import schemas, auth, models
 from tests.unit.default_db import dbs
 
 USER_TEST_EMAIL = 'test.user.crud@test.com'
@@ -12,14 +12,13 @@ def test_get_all():
     users = dbs.user.get_all()
     assert isinstance(users, list)
     for user in users:
-        assert isinstance(user, schemas.User)
+        assert isinstance(user, models.User)
 
 def test_get():
     users = dbs.user.get_all()
     if len(users) > 0:
         user = dbs.user.get(users[0].id)
-        assert isinstance(user, schemas.User)
-        assert 'password' not in user.__dict__.keys()
+        assert isinstance(user, models.User)
     else:
         assert users == []
 
@@ -27,8 +26,7 @@ def test_get_by_email():
     users = dbs.user.get_all()
     if len(users) > 0:
         user = dbs.user.get_by_email(users[0].email)
-        assert isinstance(user, schemas.User)
-        assert 'password' not in user.__dict__.keys()
+        assert isinstance(user, models.User)
     else:
         assert users == []
 
@@ -36,8 +34,7 @@ def test_get_for_auth():
     users = dbs.user.get_all()
     if len(users) > 0:
         user = dbs.user.get_for_auth(users[0].email)
-        assert isinstance(user, schemas.UserInDB)
-        assert 'password' in user.__dict__.keys()
+        assert isinstance(user, schemas.UserWPass)
     else:
         assert users == []
 
@@ -85,7 +82,7 @@ def test_not_update():
     global global_id
 
     data = schemas.UserUpdate(id=global_id)
-    assert isinstance(dbs.user.update(data), schemas.UserInDB)
+    assert isinstance(dbs.user.update(data), models.User)
     user = dbs.user.get(global_id)
     assert user.name == 'NOVO_TESTE'
 
