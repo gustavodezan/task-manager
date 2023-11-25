@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from ..auth import get_current_active_user
 from .. import crud, schemas, auth
+from ..dependencies import GetDBs, TaskDB
 
 
 router = APIRouter()
@@ -26,12 +27,15 @@ router = APIRouter()
 #         tasks.append(crud.Task.get(task))
 #     return tasks
 
-@router.post("/create", response_model=schemas.Project)
-def create_new_team(project: schemas.Project, user: auth.CurrentUser):
+@router.get('', response_model=list[schemas.Project])
+def get_all_tasks(dbs: GetDBs):
+    return dbs.project.get_all()
+
+
+@router.post('', response_model=schemas.Project)
+def create_new_team(project: schemas.ProjectCreate, dbs: GetDBs):
     """Create a new team"""
-    # if project.team not in user.teams:
-    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not enough permissions")
-    # return crud.Project.create(project.dict())
+    return dbs.project.create(project)
     
 
     return project

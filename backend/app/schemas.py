@@ -1,16 +1,16 @@
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Annotated
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from slugify import slugify
 
 
 class APIModel(BaseModel):
     last_modified: datetime|None = None
     created_at: datetime = Field(default_factory=datetime.now)
-    class Config:
-        from_attributes = True
+    # class Config:
+    #     from_attributes = True
 
 class InDB(BaseModel):
     id: int
@@ -69,32 +69,38 @@ class Tag(APIModel):
 
 class TaskCreate(APIModel):
     name: str = Field(min_length=1)
-    parent_id: int|None
+    project_id: int|None = None
+    description: str|None = None
+    parent_id: int|None = None
     due_on: datetime|None = None
     completed_at: datetime|None = None
     color: str = "#000000"
-    members: list[User]
-    tags: list[Tag]
+    members: list[User] = []
+    subtasks: list['Task'] = []
+    # tags: list[Tag] = []
 
 class Task(TaskCreate, InDB):
     pass
 
-class TaskInDB(Task, InDB):
-    pass
+class TaskUpdate(Update, InDB):
+    name: str|None = None
+    description: str|None = None
+    due_on: datetime|None = None
+    completed_at: datetime|None = None
+    color: str|None = None
 
 class ProjectCreate(APIModel):
     name: str = Field(min_length=1)
     color: str = "#000000"
     active: bool = True
-    tasks: list[Task]
-    members: list[User]
-
     team_id: int
+    tasks: list[Task] = []
+    members: list[User] = []
 
 class Project(ProjectCreate, InDB):
     pass
 
-class ProjectUpdate(Update):
+class ProjectUpdate(Update, InDB):
     name: str|None = None
     color: str|None = None
     status: str|None = None
@@ -104,19 +110,21 @@ class ProjectUpdate(Update):
 class TeamBase(APIModel):
     name: str = Field(min_length=1)
     workspace_id: int
-    slug: str|None = None
+    slug: Annotated[str|None, Field(validate_default=True)] = None
     active: bool = True
 
-class TeamCreate(TeamBase):
-    members: list[User|int] = []
-    projects: list[Project] = []
-
-    @validator('slug', always=True)
-    def ab(cls, v, values) -> str:
+    @field_validator('slug', 'name')
+    @classmethod
+    def validate_slug(cls, v, values) -> str:
+        values = values.data
         if not v:
             return slugify(values['name'])
         return v
 
+class TeamCreate(TeamBase):
+    members: list[User|int] = []
+    projects: list[Project] = []
+    
 class Team(TeamCreate):
     admins: list[User]|list[str] = []
 

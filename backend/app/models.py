@@ -13,26 +13,26 @@ from .database import Base, engine
 
 member_team_association = Table(
     'member_team', Base.metadata,
-    Column('member_id', Integer, ForeignKey('users.id')),
-    Column('team_id', Integer, ForeignKey('teams.id'))
+    Column('member_id', Integer, ForeignKey('users.id', ondelete='SET NULL')),
+    Column('team_id', Integer, ForeignKey('teams.id', ondelete='SET NULL'))
 )
 
 member_workspace_association = Table(
     'member_workspace', Base.metadata,
-    Column('member_id', Integer, ForeignKey('users.id')),
-    Column('workspace_id', Integer, ForeignKey('workspaces.id'))    
+    Column('member_id', Integer, ForeignKey('users.id', ondelete='SET NULL')),
+    Column('workspace_id', Integer, ForeignKey('workspaces.id', ondelete='SET NULL'))
 )
 
 member_project_association = Table(
     'member_project', Base.metadata,
-    Column('member_id', Integer, ForeignKey('users.id')),
-    Column('project_id', Integer, ForeignKey('projects.id'))    
+    Column('member_id', Integer, ForeignKey('users.id', ondelete='SET NULL')),
+    Column('project_id', Integer, ForeignKey('projects.id', ondelete='SET NULL'))
 )
 
 member_tasks_association = Table(
     'member_task', Base.metadata,
-    Column('member_id', Integer, ForeignKey('users.id')),
-    Column('task_id', Integer, ForeignKey('tasks.id'))    
+    Column('member_id', Integer, ForeignKey('users.id', ondelete='SET NULL')),
+    Column('task_id', Integer, ForeignKey('tasks.id', ondelete='SET NULL'))
 )
 
 class User(Base):
@@ -97,7 +97,7 @@ class Project(Base):
     team_id: Mapped[int] = mapped_column(ForeignKey('teams.id', ondelete='CASCADE'))
     team: Mapped["Team"] = relationship(back_populates='projects', foreign_keys=[team_id])
 
-    tasks: Mapped['Task'] = relationship(back_populates='project')
+    tasks: Mapped[list['Task']] = relationship(back_populates='project')
 
     members: Mapped[list['User']] = relationship('User', secondary=member_project_association, back_populates='projects')
 
@@ -106,7 +106,7 @@ class Task(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(StringEncryptedType(String, DB_ENCRYPTION_KEY, AesEngine, 'pkcs5'))
-    description: Mapped[str] = mapped_column(StringEncryptedType(String, DB_ENCRYPTION_KEY, AesEngine, 'pkcs5'))
+    description: Mapped[str|None] = mapped_column(StringEncryptedType(String, DB_ENCRYPTION_KEY, AesEngine, 'pkcs5'))
     start_at: Mapped[datetime|None]
     due_on: Mapped[datetime|None]
     completed_at: Mapped[datetime|None]
@@ -122,7 +122,7 @@ class Task(Base):
     created_by_id: Mapped[int|None] = mapped_column(ForeignKey('users.id', ondelete='SET NULL'))
     created_by: Mapped[Optional['User']] = relationship(back_populates='tasks_created', foreign_keys=[created_by_id])
 
-    parent_id: Mapped[int|None] = mapped_column(ForeignKey('tasks.id'))
+    parent_id: Mapped[int|None] = mapped_column(ForeignKey('tasks.id', ondelete='CASCADE'))
     parent = relationship('Task', remote_side=[id], backref='subtasks')
 
 class Comment(Base):

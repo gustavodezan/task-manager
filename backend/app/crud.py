@@ -112,11 +112,7 @@ class Workspace(Crud):
 
     def get_member_workspaces(self, user_id: int) -> schemas.WorkspaceInDB:
         workspaces = self.db.query(models.Workspace).join(models.Workspace.members).filter(models.User.id == user_id)
-        member_workspaces = []
-        for workspace in workspaces:
-            if workspace:
-                member_workspaces.append(workspace)
-        return member_workspaces
+        return workspaces.all()
 
     def get_all(self) -> list[schemas.WorkspaceInDB]:
         return super().get_all()
@@ -146,11 +142,7 @@ class Team(Crud):
     
     def get_member_teams(self, user_id: str):
         teams = self.db.query(models.Team).join(models.Team.members).filter(models.User.id == user_id)
-        member_teams = []
-        for team in teams:
-            if team:
-                member_teams.append(team)
-        return member_teams
+        return teams.all()
     
     def get_all(self):
         return super().get_all()
@@ -185,6 +177,10 @@ class Project(Crud):
     def get(self, project_id: int) -> schemas.Project:
         return super().get(project_id)
     
+    def get_member_projects(self, user_id: int) -> list[schemas.Project]:
+        projects = self.db.query(self.model).join(self.model.members).filter(models.User.id == user_id)
+        return projects.all()
+    
     def create(self, project: schemas.ProjectCreate) -> schemas.Project:
         return super().create(project)
 
@@ -193,3 +189,26 @@ class Project(Crud):
     
     def delete(self, project_id: int):
         return super().delete(project_id)
+
+class Task(Crud):
+    def __init__(self, db: GetDB):
+        super().__init__(db)
+        self.model: models.Task = models.Task
+        self.create_schemas: schemas.TaskCreate = schemas.TaskCreate
+        self.update_schemas: schemas.TaskUpdate = schemas.TaskUpdate
+
+    def get(self, task_id: int) -> schemas.Task:
+        return super().get(task_id)
+    
+    def get_member_tasks(self, user_id: int) -> list[schemas.Task]:
+        tasks = self.db.query(self.model).join(self.model.members).filter(models.User.id == user_id)
+        return tasks.all()
+    
+    def create(self, task: schemas.TaskCreate) -> schemas.Task:
+        return super().create(task)
+
+    def update(self, task: schemas.TaskUpdate) -> schemas.Task:
+        return super().update(task)
+    
+    def delete(self, task_id: int):
+        return super().delete(task_id)

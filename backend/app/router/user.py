@@ -29,14 +29,13 @@ def get_user(user_id: str, dbs: GetDBs):
     return user
 
 @router.post("/new", response_model=schemas.UserResponse)
-def create_new_user(user: schemas.UserCreate, dbs: GetDBs):
-    user = schemas.UserInDB(**user.model_dump())
+def create_new_user(user: schemas.UserSubmit, dbs: GetDBs):
     user.password = auth.get_password_hash(user.password)
     user = dbs.user.create(user)
     return user
 
 @router.delete("/{user_id}")
-def delete_user(user_id: str, user: auth.CurrentUser, dbs: GetDBs):
+def delete_user(user_id: str, dbs: GetDBs):
     """Delete specified team"""
     # if user.access_level < x
     return dbs.user.delete(user_id)
