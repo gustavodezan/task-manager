@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from ..auth import get_current_active_user
+from ..auth import CurrentUser
 from .. import crud, schemas, auth
 from ..dependencies import GetDBs, TaskDB
 
@@ -28,7 +28,7 @@ router = APIRouter()
 #     return tasks
 
 @router.get('', response_model=list[schemas.Project])
-def get_all_tasks(dbs: GetDBs):
+def get_all_tasks(dbs: GetDBs, user: CurrentUser):
     return dbs.project.get_all()
 
 

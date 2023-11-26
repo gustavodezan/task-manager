@@ -9,10 +9,6 @@ from ..dependencies import GetDBs
 router = APIRouter()
 
 
-@router.get("/", response_model=schemas.UserResponse)
-def get_user(user: auth.CurrentUser):
-    """Return user data"""
-    return user
 
 @router.get("/all", response_model=list[schemas.UserResponse])
 def get_user(dbs: GetDBs):
@@ -28,7 +24,12 @@ def get_user(user_id: str, dbs: GetDBs):
         raise not_found("User")
     return user
 
-@router.post("/new", response_model=schemas.UserResponse)
+@router.get("/", response_model=schemas.UserResponse)
+def get_user(user: auth.CurrentUser):
+    """Return user data"""
+    return user
+
+@router.post("/", response_model=schemas.UserResponse)
 def create_new_user(user: schemas.UserSubmit, dbs: GetDBs):
     user.password = auth.get_password_hash(user.password)
     user = dbs.user.create(user)

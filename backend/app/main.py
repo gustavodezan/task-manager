@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import auth
-from .router import login, user, workspaces, teams, projects, tasks, tags, auth as auth_route
+from .router import user, workspaces, teams, projects, tasks, tags, auth as auth_route
 from .constants import description
 from .database import get_db
 
