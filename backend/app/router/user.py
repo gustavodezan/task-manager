@@ -2,7 +2,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from .. import schemas, auth
-from ..exceptions import not_found, already_exists
+from ..exceptions import not_found, already_exists, not_enough_permissions
 from ..dependencies import GetDBs
 
 
@@ -39,7 +39,12 @@ def create_new_user(user: schemas.UserSubmit, dbs: GetDBs):
     return user
 
 @router.delete("/{user_id}")
-def delete_user(user_id: str, dbs: GetDBs):
+def delete_user(user_id: str, user: auth.CurrentUser, dbs: GetDBs):
     """Delete specified team"""
-    # if user.access_level < x
+    _user = dbs.user.get(user_id)
+    if not _user:
+        raise not_found("User")
+    if user.id != user_id or user.access_level < 1 or (user.access_level >= 1 and user.workspaces[0].id != _user.workspaces[0].id):
+        raise not_enough_permissions()
+    
     return dbs.user.delete(user_id)

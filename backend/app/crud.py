@@ -50,11 +50,17 @@ class Crud:
 
     def update(self, new_obj):
         """Default update method for any CRUD Class. For more complex updates it should be specialized"""
-        if not isinstance(new_obj, self.update_schemas):
-            raise invalid_format()
+        # if not isinstance(new_obj, self.update_schemas):
+        #     raise invalid_format()
         if not self.get(new_obj.id):
             raise not_found(self.__class__.__name__)
-        new_value = new_obj.model_dump(exclude_unset=True)
+        new_value: dict = new_obj.model_dump(exclude_unset=True)
+        
+        list_updates = []
+        for key in new_value.keys:
+            if type(new_value[key]) == list:
+                list_updates.append((key, new_value[key]))
+        
         query = self.db.query(self.model).filter(self.model.id == new_obj.id)
         old_value = query.first()
 

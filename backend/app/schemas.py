@@ -135,9 +135,13 @@ class TeamUpdate(Update):
     id: int
     name: str|None = None
     access_level: int|None = None
-    members: list[int]|None = None
+    members: list[int|UserInDB]|None = None
     projects: list[Project]|None = None
     slug: str|None = None
+
+class TeamAddMembers(BaseModel):
+    id: int
+    members: list[int] = []
 
 class TeamShort(TeamBase, InDB):
     pass
