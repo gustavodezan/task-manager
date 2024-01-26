@@ -11,10 +11,16 @@ router = APIRouter()
 
 
 @router.get("/slug/{team_slug}", response_model=schemas.TeamResponse)
-def get_team_by_slug(team_slug: str, dbs: GetDBs):
+def get_team_by_slug(team_slug: str, user: CurrentUser, dbs: GetDBs):
     team = dbs.team.get_by_slug(team_slug)
     if not team:
         raise exceptions.not_found("Team")
+    
+    if team not in user.teams:
+        print(1)
+    else:
+        print(2)
+
     return team
 
 @router.get("/{team_id}", response_model=schemas.TeamResponse)
@@ -27,10 +33,10 @@ def get_all_teams_of_user(team_id: int, team_db: TeamDB):
     return team
 
 @router.get("/", response_model=list[schemas.TeamShort])
-def get_all_teams_of_user(team_db: TeamDB):
+def get_all_teams_of_user(team_db: TeamDB, user: CurrentUser):
     """Return all teams the user's in"""
-    # return team_db.get_all()
-    return team_db.get_member_teams(2)
+    return team_db.get_all()
+    return team_db.get_member_teams(user.id)
 
 @router.post("/")
 def create_new_team(team: schemas.TeamCreate, dbs: GetDBs):
@@ -51,6 +57,23 @@ def create_new_team(team: schemas.TeamCreate, dbs: GetDBs):
     # team = dbs.team.add_members(team.id, members)
     return team
 
+@router.put("/add")#, response_model=schemas.TeamInDB
+def manage_team_members(add_members: schemas.TeamAddMembers, user: CurrentUser, dbs: GetDBs):
+    """Update team data"""
+    team = dbs.team.get(add_members.id)
+    if not team:
+        raise exceptions.not_found("Team")
+    
+    members = []
+    for member_id in add_members.members:
+        member = dbs.user.get(member_id)
+        if member:
+            members.append(member)
+    add_members.members = members
+
+    new_team = dbs.team.update(add_members)
+    return new_team
+
 @router.put("/")#, response_model=schemas.TeamInDB
 def update_team_data(team: schemas.TeamUpdate, user: CurrentUser, dbs: GetDBs):
     """Update team data"""
@@ -58,12 +81,10 @@ def update_team_data(team: schemas.TeamUpdate, user: CurrentUser, dbs: GetDBs):
     if not _team:
         raise exceptions.not_found("Team")
     
-    if user.id not in _team.admins:
-        raise exceptions.not_enough_permissions()
-    if dbs.team.update(team):
-        new_team = dbs.team.get(team.id)
-        return new_team
-    raise exceptions.internal_error()
+    # if user.id not in _team.admins:
+    #     raise exceptions.not_enough_permissions()
+    new_team = dbs.team.update(team)
+    return new_team
 
 @router.delete("/{team_id}")
 def delete_team(team_id: str, user: CurrentUser, dbs: GetDBs):

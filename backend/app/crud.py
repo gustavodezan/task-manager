@@ -30,7 +30,19 @@ class Crud:
         """It's needed to specialize this method in order to apply db insertion validators"""
         if not isinstance(new_obj, self.create_schemas):
             raise invalid_format()
+
+        to_add = {}
+        for key in new_obj.__dict__.keys():
+            if isinstance(getattr(new_obj,key), list):
+                to_add[key] = getattr(new_obj,key).copy()
+                getattr(new_obj,key).clear()
+        
         new_value = self.model(**new_obj.model_dump())
+
+        for key, value in to_add.items():
+            for item in value:
+                getattr(new_value, key).append(item)
+
         self.db.add(new_value)
         self.db.commit()
         self.db.refresh(new_value)
@@ -38,9 +50,17 @@ class Crud:
 
     def update(self, new_obj):
         """Default update method for any CRUD Class. For more complex updates it should be specialized"""
-        if not isinstance(new_obj, self.update_schemas):
-            raise invalid_format()
-        new_value = new_obj.model_dump(exclude_unset=True)
+        # if not isinstance(new_obj, self.update_schemas):
+        #     raise invalid_format()
+        if not self.get(new_obj.id):
+            raise not_found(self.__class__.__name__)
+        new_value: dict = new_obj.model_dump(exclude_unset=True)
+        
+        list_updates = []
+        for key in new_value.keys:
+            if type(new_value[key]) == list:
+                list_updates.append((key, new_value[key]))
+        
         query = self.db.query(self.model).filter(self.model.id == new_obj.id)
         old_value = query.first()
 
@@ -84,6 +104,16 @@ class User(Crud):
 
     def get_all(self) -> list[schemas.UserInDB]:
         return super().get_all()
+    
+    def get_all_from_workspace(self, workspace_id) -> list[schemas.UserInDB]:
+        users = self.db.query(self.model).join(self.model.workspaces).filter(models.Workspace.id == workspace_id).all()
+        return users
+    
+    def get_if_from_workspace(self, user_id, workspace_id) -> list[schemas.UserInDB]:
+        user = self.db.query(self.model).join(self.model.workspaces).filter(
+            self.model.id == user_id,
+            models.Workspace.id == workspace_id).first()
+        return user
 
     def get_for_auth(self, email: str) -> schemas.UserWPass:
         user = self.db.query(models.User).filter(models.User.email == email).first()
@@ -106,9 +136,11 @@ class Workspace(Crud):
         self.update_schemas: schemas.WorkspaceUpdate = schemas.WorkspaceUpdate
 
     def get(self, workspace_id: int) -> schemas.WorkspaceInDB:
-        query = self.db.query(models.Workspace).filter(models.Workspace.id == workspace_id)
-        workspace = query.first()
-        return workspace
+        return super().get(workspace_id)
+
+    def get_if_member_in(self, workspace_id: int, user_id: int) -> schemas.WorkspaceInDB:
+        workspaces = self.db.query(models.Workspace).filter(self.model.id == workspace_id).join(models.Workspace.members).filter(models.User.id == user_id)
+        return workspaces.first()
 
     def get_member_workspaces(self, user_id: int) -> schemas.WorkspaceInDB:
         workspaces = self.db.query(models.Workspace).join(models.Workspace.members).filter(models.User.id == user_id)
@@ -159,7 +191,7 @@ class Team(Crud):
         return self.get(team_id)
                 
 
-    def create(self, team: schemas.TeamCreate):
+    def create(self, team: schemas.TeamCreate) -> schemas.TeamInDB:
         if self.get_by_slug(team.slug):
             raise already_exists("Team with that name")
         return super().create(team)
